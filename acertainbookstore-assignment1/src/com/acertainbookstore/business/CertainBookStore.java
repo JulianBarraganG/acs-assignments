@@ -327,8 +327,35 @@ public class CertainBookStore implements BookStore, StockManager {
 	 * @see com.acertainbookstore.interfaces.BookStore#getTopRatedBooks(int)
 	 */
 	@Override
-	public synchronized List<Book> getTopRatedBooks(int numBooks) throws BookStoreException {
-		throw new BookStoreException();
+	public synchronized List<Book> getTopRatedBooks(int topK) throws BookStoreException {
+		if (topK < 0) {
+			throw new BookStoreException("numBooks = " + topK + ", but it must be positive");
+		}
+		else if (topK > bookMap.size()) {
+			throw new BookStoreException("numBooks = " + topK + ", but it exceeds the number of books in the store");
+		}
+
+		// Get all books.
+		List<StockBook> listAllBooks = getBooks();
+
+		// Sort all books by average rating in descending order.
+		listAllBooks.sort((book1, book2) -> {
+			if (book1.getAverageRating() < book2.getAverageRating()) {
+				return 1;
+			} else if (book1.getAverageRating() > book2.getAverageRating()) {
+				return -1;
+			} else {
+				return 0;
+			}
+		});
+
+		// Assert size of listAllBooks is at least topK.
+		if (listAllBooks.size() < topK) {
+			throw new BookStoreException("Not enough books in the store to get top " + topK + " rated books.");
+		}
+
+		// Return topK books.
+		return listAllBooks.stream().limit(topK).collect(Collectors.toList());
 	}
 
 	/*
@@ -338,7 +365,12 @@ public class CertainBookStore implements BookStore, StockManager {
 	 */
 	@Override
 	public synchronized List<StockBook> getBooksInDemand() throws BookStoreException {
-		throw new BookStoreException();
+		Collection<BookStoreBook> bookMapValues = bookMap.values();
+
+		return bookMapValues.stream()
+		.filter(book -> book.getNumSaleMisses() > 0)
+		.map(book -> book.immutableStockBook())
+		.collect(Collectors.toList());
 	}
 
 	/*

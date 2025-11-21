@@ -221,7 +221,7 @@ public class BookStoreTest {
 
 		// Try to buy a book with ISBN which does not exist.
 		HashSet<BookCopy> booksToBuy = new HashSet<BookCopy>();
-		booksToBuy.add(new BookCopy(TEST_ISBN, 1)); // valid
+		booksToBuy.add(new BookCopy(TEST_ISBN, 1)); // valid booksToBuy.add(new BookCopy(100000, 10)); // invalid
 		booksToBuy.add(new BookCopy(100000, 10)); // invalid
 
 		// Try to buy the books.

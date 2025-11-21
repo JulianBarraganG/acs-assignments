@@ -379,6 +379,34 @@ public class StockManagerTest {
 	}
 
 	/**
+	 * Tests counting top rated books.
+	 *
+	 * @throws BookStoreException
+	 *             the book store exception
+	 */
+	@Test
+	public void testCountTopRatedBooks() throws BookStoreException {
+		// Get some rated books
+		Set<StockBook> booksAdded = new HashSet<StockBook>();
+		booksAdded.add(getDefaultBook());
+
+		Set<StockBook> booksToAdd = new HashSet<StockBook>();
+		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
+				(float) 300, NUM_COPIES, 0, 1, 1, false));
+		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
+				"Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 2, 6, false));
+
+		booksAdded.addAll(booksToAdd);
+
+		storeManager.addBooks(booksToAdd);
+
+		// Get top rated books
+		List<Book> topRatedBooks = client.getTopRatedBooks(2);
+		assertTrue(topRatedBooks.size() == 2);
+	}
+
+
+	/**
 	 * Checks that a book can be removed.
 	 *
 	 * @throws BookStoreException
