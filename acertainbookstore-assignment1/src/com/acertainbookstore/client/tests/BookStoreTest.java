@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import com.acertainbookstore.business.Book;
 import com.acertainbookstore.business.BookCopy;
+import com.acertainbookstore.business.BookRating;
 import com.acertainbookstore.business.CertainBookStore;
 import com.acertainbookstore.business.ImmutableStockBook;
 import com.acertainbookstore.business.StockBook;
@@ -169,6 +170,32 @@ public class BookStoreTest {
 		// Try to buy the books.
 		try {
 			client.buyBooks(booksToBuy);
+			fail();
+		} catch (BookStoreException ex) {
+			;
+		}
+
+		List<StockBook> booksInStorePostTest = storeManager.getBooks();
+
+		// Check pre and post state are same.
+		assertTrue(booksInStorePreTest.containsAll(booksInStorePostTest)
+				&& booksInStorePreTest.size() == booksInStorePostTest.size());
+	}
+	@Test
+	public void testRateInvalidISBN() throws BookStoreException {
+		List<StockBook> booksInStorePreTest = storeManager.getBooks();
+
+		// Try to buy a book with invalid ISBN.
+		HashSet<BookRating> booksToRate= new HashSet<BookRating>();
+		booksToRate.add(new BookRating(TEST_ISBN, 5)); // valid
+		booksToRate.add(new BookRating(TEST_ISBN, 0)); // valid
+		booksToRate.add(new BookRating(TEST_ISBN, -1)); // invalid
+		booksToRate.add(new BookRating(TEST_ISBN, 6)); // invalid
+		booksToRate.add(new BookRating(-1, 1)); // invalid
+
+		// Try to rate the books.
+		try {
+			client.rateBooks(booksToRate);
 			fail();
 		} catch (BookStoreException ex) {
 			;
