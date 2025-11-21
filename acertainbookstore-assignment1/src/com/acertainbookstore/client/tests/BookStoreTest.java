@@ -6,17 +6,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.acertainbookstore.business.*;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.acertainbookstore.business.Book;
-import com.acertainbookstore.business.BookCopy;
-import com.acertainbookstore.business.CertainBookStore;
-import com.acertainbookstore.business.ImmutableStockBook;
-import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.client.BookStoreHTTPProxy;
 import com.acertainbookstore.client.StockManagerHTTPProxy;
 import com.acertainbookstore.interfaces.BookStore;
@@ -348,6 +344,27 @@ public class BookStoreTest {
 		assertTrue(booksInStorePreTest.containsAll(booksInStorePostTest)
 				&& booksInStorePreTest.size() == booksInStorePostTest.size());
 	}
+
+    /**
+     * Tests that a book can be rated.
+     *
+     * @throws BookStoreException
+     *             the book store exception
+     */
+    @Test
+    public void testRateBook() throws BookStoreException {
+        Set<BookRating> bookToRate = new HashSet<BookRating>();
+        bookToRate.add(new BookRating(getDefaultBook().getISBN(),3));
+        client.rateBooks(bookToRate);
+
+        // Get defaultBook in store.
+        HashSet<Integer> ratedBookISBNs = new HashSet<Integer>();
+        ratedBookISBNs.add(TEST_ISBN);
+        List<StockBook> RatedBooks = storeManager.getBooksByISBN(ratedBookISBNs);
+
+        assertEquals(1, RatedBooks.get(0).getNumTimesRated());
+        assertEquals(3, RatedBooks.get(0).getTotalRating());
+    }
 
 	/**
 	 * Tear down after class.
