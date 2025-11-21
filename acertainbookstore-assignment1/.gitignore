@@ -1,5 +1,4 @@
 *.class
-build.xml
 /out/
 
 # Ant stuff
