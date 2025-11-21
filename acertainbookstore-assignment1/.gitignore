@@ -1,4 +1,9 @@
 *.class
+build.xml
+/out/
+
+# Ant stuff
+lib/ant-contrib*.jar
 
 # Package Files #
 *.war

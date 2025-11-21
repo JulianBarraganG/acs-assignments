@@ -83,6 +83,17 @@ public class CertainBookStore implements BookStore, StockManager {
 		}
 	}
 
+	private synchronized void validate(BookRating bookRating) throws BookStoreException {
+		int isbn = bookRating.getISBN();
+		int rating = bookRating.getRating();
+
+		validateISBNInStock(isbn); // Check if the book has valid ISBN and in stock
+
+		if (BookStoreUtility.isInvalidRating(rating)) { // Check if the rating is valid (in 0-5)
+			throw new BookStoreException(BookStoreConstants.RATING + rating + BookStoreConstants.INVALID);
+		}
+	}
+
 	private synchronized void validate(BookEditorPick editorPickArg) throws BookStoreException {
 		int isbn = editorPickArg.getISBN();
 		validateISBNInStock(isbn); // Check if the book has valid ISBN and in stock
@@ -335,11 +346,28 @@ public class CertainBookStore implements BookStore, StockManager {
 	 * 
 	 * @see com.acertainbookstore.interfaces.BookStore#rateBooks(java.util.Set)
 	 */
+
 	@Override
 	public synchronized void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
-		throw new BookStoreException();
-	}
+		if (bookRating == null) {
+			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
+		}
 
+		int isbn;
+		BookStoreBook book;
+
+		for (BookRating ratingToValidate : bookRating) {
+			// Check whether the book is in the system. If not, throw exception (all-or-nothing).
+			validate(ratingToValidate);
+		}
+
+		// Then make ratings.
+		for (BookRating ratingToAdd: bookRating) {
+			isbn = ratingToAdd.getISBN();
+			book = bookMap.get(ratingToAdd.getISBN());
+			book.addRating(ratingToAdd.getRating());
+		}
+	}
 	/*
 	 * (non-Javadoc)
 	 * 
