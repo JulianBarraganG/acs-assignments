@@ -1,2 +1,7 @@
 *.pdf
 acertainbookstore-assignment1/build.xml
+*.iml
+*.idea
+
+lib/
+out/

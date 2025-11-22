@@ -398,6 +398,122 @@ public class BookStoreTest {
         assertEquals(3, RatedBooks.get(0).getTotalRating());
     }
 
+    /**
+     * Tests that a books can be rated.
+     *
+     * @throws BookStoreException
+     *             the book store exception
+     */
+    @Test
+    public void testRateBooks() throws BookStoreException {
+        // Add some books to the store
+        Set<StockBook> booksToAdd = new HashSet<StockBook>();
+        booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
+                (float) 300, NUM_COPIES, 0, 0, 0, false));
+        booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
+                "Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 0, 0, false));
+        storeManager.addBooks(booksToAdd);
+
+        // Rate all books
+        Set<BookRating> bookToRate = new HashSet<BookRating>();
+        bookToRate.add(new BookRating(getDefaultBook().getISBN(),3));
+		bookToRate.add(new BookRating(TEST_ISBN + 1,4));
+		bookToRate.add(new BookRating(TEST_ISBN + 2,5));
+        client.rateBooks(bookToRate);
+
+        // Get defaultBook in store.
+        HashSet<Integer> ratedBookISBNs = new HashSet<Integer>();
+        ratedBookISBNs.add(TEST_ISBN);
+        ratedBookISBNs.add(TEST_ISBN + 1);
+        ratedBookISBNs.add(TEST_ISBN + 2);
+        List<StockBook> RatedBooks = storeManager.getBooksByISBN(ratedBookISBNs);
+
+		HashSet<Integer> book0_ISBN =new HashSet<Integer>();
+		book0_ISBN.add(TEST_ISBN);
+		HashSet<Integer> book1_ISBN =new HashSet<Integer>();
+		book1_ISBN.add(TEST_ISBN + 1);
+		HashSet<Integer> book2_ISBN =new HashSet<Integer>();
+		book2_ISBN.add(TEST_ISBN + 2);
+        assertEquals(1, storeManager.getBooksByISBN(book0_ISBN).get(0).getNumTimesRated());
+		assertEquals(3, storeManager.getBooksByISBN(book0_ISBN).get(0).getTotalRating());
+		assertEquals(1, storeManager.getBooksByISBN(book1_ISBN).get(0).getNumTimesRated());	
+		assertEquals(4, storeManager.getBooksByISBN(book1_ISBN).get(0).getTotalRating());
+		assertEquals(1, storeManager.getBooksByISBN(book2_ISBN).get(0).getNumTimesRated());
+		assertEquals(5, storeManager.getBooksByISBN(book2_ISBN).get(0).getTotalRating());
+    }
+
+	/**
+     * Tests that a book can be rated multiple times.
+     *
+     * @throws BookStoreException
+     *             the book store exception
+     */
+    @Test
+    public void testRateBookMultipleTimes() throws BookStoreException {
+        Set<BookRating> booksToRate = new HashSet<BookRating>();
+        booksToRate.add(new BookRating(getDefaultBook().getISBN(),3));
+        client.rateBooks(booksToRate);
+		booksToRate.add(new BookRating(getDefaultBook().getISBN(),4));
+        client.rateBooks(booksToRate);
+		booksToRate.add(new BookRating(getDefaultBook().getISBN(),2));
+        client.rateBooks(booksToRate);
+
+        // Get defaultBook in store.
+        HashSet<Integer> ratedBookISBNs = new HashSet<Integer>();
+        ratedBookISBNs.add(TEST_ISBN);
+        List<StockBook> RatedBooks = storeManager.getBooksByISBN(ratedBookISBNs);
+
+        assertEquals(3, RatedBooks.get(0).getNumTimesRated());
+        assertEquals(9, RatedBooks.get(0).getTotalRating());
+    }
+
+	/**
+     * Tests that it fails on invalid ratings.
+     *
+     * @throws BookStoreException
+     *             the book store exception
+     */
+    @Test
+    public void testRateBookInvalidRating() throws BookStoreException {
+        // Add some books to the store
+        Set<StockBook> booksToAdd = new HashSet<StockBook>();
+        booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
+                (float) 300, NUM_COPIES, 0, 0, 0, false));
+        booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
+                "Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 0, 0, false));
+        storeManager.addBooks(booksToAdd);
+
+        // Get list of books to compare
+		List<StockBook> booksInStorePreTest = storeManager.getBooks();
+
+		// Try to rate a book with invalid rating.
+		HashSet<BookRating> booksToRate1 = new HashSet<BookRating>();
+		booksToRate1.add(new BookRating(TEST_ISBN, 6)); // invalid
+
+		// Try to rate the books.
+		try {
+			client.rateBooks(booksToRate1);
+			fail();
+		} catch (BookStoreException ex) {
+			;
+		}
+
+		HashSet<BookRating> booksToRate2 = new HashSet<BookRating>();
+		booksToRate2.add(new BookRating(TEST_ISBN + 1, -1)); // invalid
+
+		// Try to rate the books.
+		try {
+			client.rateBooks(booksToRate2);
+			fail();
+		} catch (BookStoreException ex) {
+			;
+		}
+
+		List<StockBook> booksInStorePostTest = storeManager.getBooks();
+		assertEquals(booksInStorePreTest, booksInStorePostTest);
+    }
+    
+
 	/**
 	 * Tear down after class.
 	 *
@@ -413,4 +529,5 @@ public class BookStoreTest {
 			((StockManagerHTTPProxy) storeManager).stop();
 		}
 	}
+
 }

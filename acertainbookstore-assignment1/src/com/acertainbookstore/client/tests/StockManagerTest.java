@@ -379,34 +379,6 @@ public class StockManagerTest {
 	}
 
 	/**
-	 * Tests counting top rated books.
-	 *
-	 * @throws BookStoreException
-	 *             the book store exception
-	 */
-	@Test
-	public void testCountTopRatedBooks() throws BookStoreException {
-		// Get some rated books
-		Set<StockBook> booksAdded = new HashSet<StockBook>();
-		booksAdded.add(getDefaultBook());
-
-		Set<StockBook> booksToAdd = new HashSet<StockBook>();
-		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
-				(float) 300, NUM_COPIES, 0, 1, 1, false));
-		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
-				"Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 2, 6, false));
-
-		booksAdded.addAll(booksToAdd);
-
-		storeManager.addBooks(booksToAdd);
-
-		// Get top rated books
-		List<Book> topRatedBooks = client.getTopRatedBooks(2);
-		assertTrue(topRatedBooks.size() == 2);
-	}
-
-
-	/**
 	 * Checks that a book can be removed.
 	 *
 	 * @throws BookStoreException
@@ -496,6 +468,82 @@ public class StockManagerTest {
 		booksInStoreList = storeManager.getBooks();
 		assertTrue(booksInStoreList.size() == 0);
 	}
+
+	/**
+	 * Tests counts and rating of top rated books.
+	 *
+	 * @throws BookStoreException
+	 *             the book store exception
+	 */
+	@Test
+	public void testTopRatedBook() throws BookStoreException {
+		// Get some rated books
+		Set<StockBook> booksAdded = new HashSet<StockBook>();
+		booksAdded.add(getDefaultBook());
+
+		Set<StockBook> booksToAdd = new HashSet<StockBook>();
+		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
+				(float) 300, NUM_COPIES, 0, 1, 1, false));
+		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
+				"Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 2, 6, false));
+
+		booksAdded.addAll(booksToAdd);
+        storeManager.addBooks(booksToAdd);
+
+
+		// Get count of rated books
+		List<Book> topRatedBooks = client.getTopRatedBooks(2);
+		assertEquals(2, topRatedBooks.size());
+
+        // Check ratings of top rated books
+        Set<Integer> topRatedISBN = new HashSet<Integer>();
+        topRatedISBN.add(topRatedBooks.get(0).getISBN());
+		assertEquals(3, storeManager.getBooksByISBN(topRatedISBN).get(0).getAverageRating(), 0);
+
+        // Check ratings of second rated books
+        Set<Integer> secRatedISBN = new HashSet<Integer>();
+        secRatedISBN.add(topRatedBooks.get(1).getISBN());
+        assertEquals(1, storeManager.getBooksByISBN(secRatedISBN).get(0).getAverageRating(), 0);
+	}
+
+	/**
+	 * Tests getting invalid number of top rated books.
+	 *
+	 * @throws BookStoreException
+	 *             the book store exception
+	 */
+	@Test
+	public void testTopInvalidRatedBooks() throws BookStoreException {
+
+		Set<StockBook> booksToAdd = new HashSet<StockBook>();
+		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
+				(float) 300, NUM_COPIES, 0, 1, 1, false));
+		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
+				"Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 2, 6, false));
+
+        storeManager.addBooks(booksToAdd);
+        List<StockBook> booksInStorePreTest = storeManager.getBooks();
+
+		// Get -1 rated books
+		try {
+			client.getTopRatedBooks(-1);
+			fail();
+		} catch (BookStoreException ex) {
+			;
+		}
+
+		// Get too many rated books
+		try {
+			client.getTopRatedBooks(4);
+			fail();
+		} catch (BookStoreException ex) {
+			;
+		}
+
+        List<StockBook> booksInStorePostTest = storeManager.getBooks();
+        assertEquals(booksInStorePreTest, booksInStorePostTest);
+	}
+
 
 	/**
 	 * Tear down after class.

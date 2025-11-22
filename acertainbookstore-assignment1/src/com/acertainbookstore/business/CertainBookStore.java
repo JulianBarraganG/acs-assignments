@@ -380,23 +380,20 @@ public class CertainBookStore implements BookStore, StockManager {
 	 */
 
 	@Override
-	public synchronized void rateBooks(Set<BookRating> bookRating) throws BookStoreException {
-		if (bookRating == null) {
+	public synchronized void rateBooks(Set<BookRating> bookRatings) throws BookStoreException {
+        if (bookRatings == null) {
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
 		}
 
-		int isbn;
-		BookStoreBook book;
-
-		for (BookRating ratingToValidate : bookRating) {
+		for (BookRating ratingToValidate : bookRatings) {
 			// Check whether the book is in the system. If not, throw exception (all-or-nothing).
 			validate(ratingToValidate);
 		}
 
 		// Then make ratings.
-		for (BookRating ratingToAdd: bookRating) {
-			isbn = ratingToAdd.getISBN();
-			book = bookMap.get(ratingToAdd.getISBN());
+		for (BookRating ratingToAdd: bookRatings) {
+			int isbn = ratingToAdd.getISBN();
+            BookStoreBook book = bookMap.get(isbn);
 			book.addRating(ratingToAdd.getRating());
 		}
 	}

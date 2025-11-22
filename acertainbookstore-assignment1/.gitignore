@@ -2,10 +2,12 @@
 /out/
 
 # Ant stuff
-lib/ant-contrib*.jar
+lib/
 
 # Package Files #
 *.war
 *.ear
 /bin/
 .DS_Store
+
+.idea/
