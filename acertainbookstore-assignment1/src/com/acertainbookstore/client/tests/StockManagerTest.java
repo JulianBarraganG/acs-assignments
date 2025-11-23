@@ -26,6 +26,8 @@ import com.acertainbookstore.interfaces.StockManager;
 import com.acertainbookstore.utils.BookStoreConstants;
 import com.acertainbookstore.utils.BookStoreException;
 
+import jdk.jfr.Timestamp;
+
 /**
  * {@StockManagerTest} tests the {@link StockManager} interface.
  * 
@@ -478,32 +480,28 @@ public class StockManagerTest {
 	@Test
 	public void testTopRatedBook() throws BookStoreException {
 		// Get some rated books
-		Set<StockBook> booksAdded = new HashSet<StockBook>();
-		booksAdded.add(getDefaultBook());
-
 		Set<StockBook> booksToAdd = new HashSet<StockBook>();
 		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
 				(float) 300, NUM_COPIES, 0, 1, 1, false));
 		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
 				"Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 2, 6, false));
 
-		booksAdded.addAll(booksToAdd);
         storeManager.addBooks(booksToAdd);
-
 
 		// Get count of rated books
 		List<Book> topRatedBooks = client.getTopRatedBooks(2);
+		Set<Integer> topRatedISBN = new HashSet<Integer>();
+		Set<Integer> secRatedISBN = new HashSet<Integer>();
+		topRatedISBN.add(topRatedBooks.get(0).getISBN());
+		secRatedISBN.add(topRatedBooks.get(1).getISBN());
+		float bestAvgRating  = storeManager.getBooksByISBN(topRatedISBN).get(0).getAverageRating();
+		float secondBestAvgRating = storeManager.getBooksByISBN(secRatedISBN).get(0).getAverageRating();
+
+		// Assert num rated books, avg rating calculation and descending order
 		assertEquals(2, topRatedBooks.size());
-
-        // Check ratings of top rated books
-        Set<Integer> topRatedISBN = new HashSet<Integer>();
-        topRatedISBN.add(topRatedBooks.get(0).getISBN());
-		assertEquals(3, storeManager.getBooksByISBN(topRatedISBN).get(0).getAverageRating(), 0);
-
-        // Check ratings of second rated books
-        Set<Integer> secRatedISBN = new HashSet<Integer>();
-        secRatedISBN.add(topRatedBooks.get(1).getISBN());
-        assertEquals(1, storeManager.getBooksByISBN(secRatedISBN).get(0).getAverageRating(), 0);
+		assertEquals(3, bestAvgRating, 0);
+        assertEquals(1, secondBestAvgRating, 0);
+		assertTrue(bestAvgRating >= secondBestAvgRating);
 	}
 
 	/**
@@ -542,6 +540,53 @@ public class StockManagerTest {
 
         List<StockBook> booksInStorePostTest = storeManager.getBooks();
         assertEquals(booksInStorePreTest, booksInStorePostTest);
+	}
+	@Test
+	public void testNoSalesMissToInDemand() throws BookStoreException {
+		// Check that there are no in-demand books initially
+		List<StockBook> inDemandBooks = storeManager.getBooksInDemand();
+		assertEquals(0, inDemandBooks.size());
+	}
+
+	@Test
+	public void testSalesMissToInDemand() throws BookStoreException {
+		// Buy all copies of the default book to make it in-demand
+		Set<BookCopy> booksToBuy = new HashSet<>();
+		booksToBuy.add(new BookCopy(TEST_ISBN, NUM_COPIES + 1)); // force sales miss
+		try {
+			client.buyBooks(booksToBuy);
+        	fail("Expected BookStoreException when buying more copies than available");
+		} catch (BookStoreException ex) {
+			// Expected exception - sales miss has been recorded
+		}
+
+		// Check that the default book is now in-demand
+		List<StockBook> inDemandBooks = storeManager.getBooksInDemand();
+		int inDemandISBN = inDemandBooks.get(0).getISBN();
+		assertEquals(TEST_ISBN, inDemandISBN, 0);
+		assertEquals(1, inDemandBooks.size()); // only the default book should be in-demand
+	}
+	@Test
+	public void testMultipleSalesMissToInDemand() throws BookStoreException {
+		// Buy all copies of the default book multiple times to increase sales misses
+		int salesMissAttempts = 3;
+		for (int i = 0; i < salesMissAttempts; i++) {
+			Set<BookCopy> booksToBuy = new HashSet<>();
+			booksToBuy.add(new BookCopy(TEST_ISBN, NUM_COPIES + 1)); // force sales miss
+			try {
+				client.buyBooks(booksToBuy);
+				fail("Expected BookStoreException when buying more copies than available");
+			} catch (BookStoreException ex) {
+				// Expected exception - sales miss has been recorded
+			}
+		}
+
+		// Check that the default book is still in-demand
+		List<StockBook> inDemandBooks = storeManager.getBooksInDemand();
+		int inDemandISBN = inDemandBooks.get(0).getISBN();
+		assertEquals(TEST_ISBN, inDemandISBN, 0);
+		assertEquals(1, inDemandBooks.size()); // only the default book should be in-demand
+		// assertEquals((long) salesMissAttempts, inDemandBooks.get(0).getNumSaleMisses(), 0);
 	}
 
 
