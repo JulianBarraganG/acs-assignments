@@ -372,7 +372,7 @@ public class CertainBookStore implements BookStore, StockManager {
 		.map(book -> book.immutableStockBook())
 		.collect(Collectors.toList());
 
-		System.out.println(books);
+		System.out.println("Books from getBooksInDemand: " + books);
 
 		return books;
 
