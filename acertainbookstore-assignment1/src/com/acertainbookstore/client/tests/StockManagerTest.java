@@ -546,8 +546,13 @@ public class StockManagerTest {
 	public void testNoSalesMissToInDemand() throws BookStoreException {
 		// Check that there are no in-demand books initially
 		List<StockBook> inDemandBooks = storeManager.getBooksInDemand();
-		System.out.println("In-Demand Books: ");
-		System.out.println(inDemandBooks);
+		// Debugging print statements
+		if (inDemandBooks.size() > 0) {
+			System.err.println("In-demand books found when there should be none:");
+			for (StockBook book : inDemandBooks) {
+				System.err.println("ISBN: " + book.getISBN() + ", Sales Misses: " + book.getNumSaleMisses());
+			}
+		}
 		assertEquals(0, inDemandBooks.size());
 	}
 

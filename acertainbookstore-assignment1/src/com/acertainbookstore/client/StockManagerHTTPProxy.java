@@ -109,11 +109,11 @@ public class StockManagerHTTPProxy implements StockManager {
 	/*
 	 * (non-Javadoc)
 	 * 
-	 * @see com.acertainbookstore.interfaces.StockManager#getBooksInDemand()
+	 * @see com.acertainbookstore.interfaces.StockManager#getBooks()
 	 */
 	@SuppressWarnings("unchecked")
 	public List<StockBook> getBooks() throws BookStoreException {
-		String urlString = serverAddress + "/" + BookStoreMessageTag.GETBOOKSINDEMAND;
+		String urlString = serverAddress + "/" + BookStoreMessageTag.LISTBOOKS;
 		BookStoreRequest bookStoreRequest = BookStoreRequest.newGetRequest(urlString);
 		BookStoreResponse bookStoreResponse = BookStoreUtility.performHttpExchange(client, bookStoreRequest,
 				serializer.get());
@@ -138,10 +138,9 @@ public class StockManagerHTTPProxy implements StockManager {
 	 * 
 	 * @see com.acertainbookstore.interfaces.StockManager#getBooksInDemand()
 	 */
-	@Override
 	@SuppressWarnings("unchecked")
 	public List<StockBook> getBooksInDemand() throws BookStoreException {
-		String urlString = serverAddress + "/" + BookStoreMessageTag.LISTBOOKS;
+		String urlString = serverAddress + "/" + BookStoreMessageTag.GETBOOKSINDEMAND;
 		BookStoreRequest bookStoreRequest = BookStoreRequest.newGetRequest(urlString);
 		BookStoreResponse bookStoreResponse = BookStoreUtility.performHttpExchange(client, bookStoreRequest,
 				serializer.get());

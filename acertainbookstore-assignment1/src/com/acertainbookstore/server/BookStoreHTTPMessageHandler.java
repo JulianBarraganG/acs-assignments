@@ -453,7 +453,6 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
 	 */
 	@SuppressWarnings("unchecked")
 	private void getBooksInDemand(HttpServletRequest request, HttpServletResponse response) throws IOException {
-		byte[] serializedRequestContent = getSerializedRequestContent(request);
 
 		BookStoreResponse bookStoreResponse = new BookStoreResponse();
 
