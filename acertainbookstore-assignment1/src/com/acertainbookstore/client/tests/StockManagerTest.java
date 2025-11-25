@@ -541,10 +541,13 @@ public class StockManagerTest {
         List<StockBook> booksInStorePostTest = storeManager.getBooks();
         assertEquals(booksInStorePreTest, booksInStorePostTest);
 	}
+
 	@Test
 	public void testNoSalesMissToInDemand() throws BookStoreException {
 		// Check that there are no in-demand books initially
 		List<StockBook> inDemandBooks = storeManager.getBooksInDemand();
+		System.out.println("In-Demand Books: ");
+		System.out.println(inDemandBooks);
 		assertEquals(0, inDemandBooks.size());
 	}
 

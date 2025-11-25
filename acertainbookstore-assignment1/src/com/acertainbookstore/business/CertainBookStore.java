@@ -367,10 +367,15 @@ public class CertainBookStore implements BookStore, StockManager {
 	public synchronized List<StockBook> getBooksInDemand() throws BookStoreException {
 		Collection<BookStoreBook> bookMapValues = bookMap.values();
 
-		return bookMapValues.stream()
+		List<StockBook> books = bookMapValues.stream()
 		.filter(book -> book.getNumSaleMisses() > 0)
 		.map(book -> book.immutableStockBook())
 		.collect(Collectors.toList());
+
+		System.out.println(books);
+
+		return books;
+
 	}
 
 	/*

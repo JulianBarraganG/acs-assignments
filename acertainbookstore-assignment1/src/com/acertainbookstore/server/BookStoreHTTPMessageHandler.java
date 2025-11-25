@@ -112,9 +112,6 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
 				buyBooks(request, response);
 				break;
 
-			case RATEBOOKS:
-				rateBooks(request, response);
-				break;
 
 			case GETBOOKS:
 				getBooks(request, response);
@@ -126,6 +123,14 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
 
 			case GETSTOCKBOOKSBYISBN:
 				getStockBooksByISBN(request, response);
+				break;
+
+			case RATEBOOKS:
+				rateBooks(request, response);
+				break;
+
+			case GETTOPRATEDBOOKS:
+				getTopRatedBooks(request, response);
 				break;
 
 			default:
@@ -182,6 +187,31 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
 		try {
 			int numBooks = BookStoreUtility.convertStringToInt(numBooksString);
 			bookStoreResponse.setList(myBookStore.getEditorPicks(numBooks));
+		} catch (BookStoreException ex) {
+			bookStoreResponse.setException(ex);
+		}
+
+		byte[] serializedResponseContent = serializer.get().serialize(bookStoreResponse);
+		response.getOutputStream().write(serializedResponseContent);
+	}
+
+	/**
+	 * Gets the k top rated picks.
+	 *
+	 * @param request
+	 *            the request
+	 * @param response
+	 *            the response
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	private void getTopRatedBooks(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		String numBooksString = URLDecoder.decode(request.getParameter(BookStoreConstants.BOOK_NUM_PARAM), StandardCharsets.UTF_8);
+		BookStoreResponse bookStoreResponse = new BookStoreResponse();
+
+		try {
+			int numBooks = BookStoreUtility.convertStringToInt(numBooksString);
+			bookStoreResponse.setList(myBookStore.getTopRatedBooks(numBooks));
 		} catch (BookStoreException ex) {
 			bookStoreResponse.setException(ex);
 		}
@@ -406,6 +436,33 @@ public class BookStoreHTTPMessageHandler extends AbstractHandler {
 		byte[] serializedResponseContent = serializer.get().serialize(bookStoreResponse);
 		response.getOutputStream().write(serializedResponseContent);
 	}
+
+	/**
+	 * Gets all in demand books (or none).
+	 *
+	 * @param request
+	 *            the request
+	 * @param response
+	 *            the response
+	 * @throws IOException
+	 *             Signals that an I/O exception has occurred.
+	 */
+	@SuppressWarnings("unchecked")
+	private void getBooksInDemand(HttpServletRequest request, HttpServletResponse response) throws IOException {
+		byte[] serializedRequestContent = getSerializedRequestContent(request);
+
+		BookStoreResponse bookStoreResponse = new BookStoreResponse();
+
+		try {
+			bookStoreResponse.setList(myBookStore.getBooksInDemand());
+		} catch (BookStoreException ex) {
+			bookStoreResponse.setException(ex);
+		}
+
+		byte[] serializedResponseContent = serializer.get().serialize(bookStoreResponse);
+		response.getOutputStream().write(serializedResponseContent);
+	}
+
 	/**
 	 * Gets the serialized request content.
 	 *
