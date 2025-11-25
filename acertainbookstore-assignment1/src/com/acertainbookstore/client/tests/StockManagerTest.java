@@ -505,6 +505,32 @@ public class StockManagerTest {
 	}
 
 	/**
+	 * Test all-or-nothing behavior of top rated books.
+	 *
+	 * @throws BookStoreException
+	 *             the book store exception
+	 */
+	@Test
+	public void testTopRatedAllOrNothing() throws BookStoreException {
+		// Get some rated books
+		Set<StockBook> booksToAdd = new HashSet<StockBook>();
+		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
+				(float) 300, NUM_COPIES, 0, 1, 1, false));
+		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
+				"Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 2, 6, false));
+
+        storeManager.addBooks(booksToAdd); // Now 3 books in store with default book
+
+		// Get count of rated books
+		try {
+			List<Book> topRatedBooks = client.getTopRatedBooks(4);
+			fail("Expected BookStoreException when requesting more top rated books than available");
+		} catch (BookStoreException ex) {
+			;
+		}
+	}
+
+	/**
 	 * Tests getting invalid number of top rated books.
 	 *
 	 * @throws BookStoreException
@@ -542,17 +568,15 @@ public class StockManagerTest {
         assertEquals(booksInStorePreTest, booksInStorePostTest);
 	}
 
+	/** Test all-or-nothing behavior of getBooksInDemand.
+	 *
+	 * @throws BookStoreException
+	 *             the book store exception
+	 */
 	@Test
 	public void testNoSalesMissToInDemand() throws BookStoreException {
 		// Check that there are no in-demand books initially
 		List<StockBook> inDemandBooks = storeManager.getBooksInDemand();
-		// Debugging print statements
-		if (inDemandBooks.size() > 0) {
-			System.err.println("In-demand books found when there should be none:");
-			for (StockBook book : inDemandBooks) {
-				System.err.println("ISBN: " + book.getISBN() + ", Sales Misses: " + book.getNumSaleMisses());
-			}
-		}
 		assertEquals(0, inDemandBooks.size());
 	}
 
@@ -596,6 +620,8 @@ public class StockManagerTest {
 		assertEquals(1, inDemandBooks.size()); // only the default book should be in-demand
 		// assertEquals((long) salesMissAttempts, inDemandBooks.get(0).getNumSaleMisses(), 0);
 	}
+
+
 
 
 	/**

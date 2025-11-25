@@ -33,10 +33,8 @@ public final class BookStoreKryoSerializer implements BookStoreSerializer {
 	public BookStoreKryoSerializer() {
 		// Create and configure the Kryo object
 		binaryStream = new Kryo();
-		/**
 		binaryStream.setReferences(true);  // Most important fix
 		binaryStream.setRegistrationRequired(false); // Allow any class to be serialized
-		 */
 		binaryStream.setInstantiatorStrategy(new DefaultInstantiatorStrategy(new StdInstantiatorStrategy()));
 
 		// register all classes
@@ -49,6 +47,7 @@ public final class BookStoreKryoSerializer implements BookStoreSerializer {
 		binaryStream.register(com.acertainbookstore.business.BookEditorPick.class);
 		binaryStream.register(com.acertainbookstore.business.ImmutableBook.class);
 		binaryStream.register(com.acertainbookstore.business.BookRating.class);
+
 	}
 
 	/*

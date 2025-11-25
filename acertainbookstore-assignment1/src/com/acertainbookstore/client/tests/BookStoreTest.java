@@ -398,6 +398,39 @@ public class BookStoreTest {
         assertEquals(3, RatedBooks.get(0).getTotalRating());
     }
 
+	/** Test all-or-nothing semantics for rateBooks
+	*
+	* @throws BookStoreException
+	* 		  the book store exception
+	*/
+	@Test
+	public void testRateBooksAllOrNothing() throws BookStoreException {
+		// Add some books to the store
+		Set<StockBook> booksToAdd = new HashSet<StockBook>();
+		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
+				(float) 300, NUM_COPIES, 0, 0, 0, false));
+		booksToAdd.add(new ImmutableStockBook(TEST_ISBN + 2, "The C Programming Language",
+				"Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 0, 0, false));
+		storeManager.addBooks(booksToAdd); // 3 including default
+
+		List<StockBook> booksInStorePreRatings = storeManager.getBooks();
+
+        // Rate all books
+		Set<BookRating> bookToRate = new HashSet<BookRating>();
+		bookToRate.add(new BookRating(getDefaultBook().getISBN(), 6)); // invalid rating
+		bookToRate.add(new BookRating(TEST_ISBN + 1,4));
+		bookToRate.add(new BookRating(TEST_ISBN + 2,5));
+		try {
+        	client.rateBooks(bookToRate);
+			fail("Expected BookStoreException not thrown. Invalid rating.");
+		} catch (BookStoreException e) {
+			;
+		}
+		List<StockBook> booksInStorePostRatings = storeManager.getBooks();
+		assertEquals(booksInStorePreRatings, booksInStorePostRatings);
+    }
+
+
     /**
      * Tests that a books can be rated.
      *
@@ -416,7 +449,7 @@ public class BookStoreTest {
 
         // Rate all books
         Set<BookRating> bookToRate = new HashSet<BookRating>();
-        bookToRate.add(new BookRating(getDefaultBook().getISBN(),3));
+        bookToRate.add(new BookRating(getDefaultBook().getISBN(), 3));
 		bookToRate.add(new BookRating(TEST_ISBN + 1,4));
 		bookToRate.add(new BookRating(TEST_ISBN + 2,5));
         client.rateBooks(bookToRate);
@@ -451,11 +484,11 @@ public class BookStoreTest {
     @Test
     public void testRateBookMultipleTimes() throws BookStoreException {
         Set<BookRating> booksToRate = new HashSet<BookRating>();
-        booksToRate.add(new BookRating(getDefaultBook().getISBN(),3));
+        booksToRate.add(new BookRating(getDefaultBook().getISBN(), 3));
         client.rateBooks(booksToRate);
-		booksToRate.add(new BookRating(getDefaultBook().getISBN(),4));
+		booksToRate.add(new BookRating(getDefaultBook().getISBN(), 4));
         client.rateBooks(booksToRate);
-		booksToRate.add(new BookRating(getDefaultBook().getISBN(),2));
+		booksToRate.add(new BookRating(getDefaultBook().getISBN(), 2));
         client.rateBooks(booksToRate);
 
         // Get defaultBook in store.
