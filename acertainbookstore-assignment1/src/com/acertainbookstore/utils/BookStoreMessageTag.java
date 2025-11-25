@@ -21,6 +21,9 @@ public enum BookStoreMessageTag {
 	/** The tag for the buy books message. */
 	BUYBOOKS,
 
+	/** The tag for the rate books message. */
+	RATEBOOKS,
+
 	/** The tag for the update editor picks message. */
 	UPDATEEDITORPICKS,
 
