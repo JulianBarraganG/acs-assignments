@@ -2,6 +2,7 @@
 acertainbookstore-assignment1/build.xml
 *.iml
 *.idea
+.vscode/
 
 lib/
 out/
