@@ -6,5 +6,5 @@ acertainbookstore-assignment1/build.xml
 
 lib/
 out/
-*.project/
-*build.xml
+*/.project/
+*/build.xml
