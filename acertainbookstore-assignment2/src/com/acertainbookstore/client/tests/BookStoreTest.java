@@ -521,6 +521,56 @@ public class BookStoreTest {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Test concurrent buyBooks() functionality.
+	 * One client buys more than half remaining,
+	 * second tries to buy more than remaining.
+	 *
+	 * Test 1 in assignment
+	 *
+	 * @throws BookStoreException
+	 *             the book store exception
+	 */
+	@Test
+	public void testBuyAndSalesMissConcurrently() throws BookStoreException {
+		int numCopiesToBuy = (NUM_COPIES / 2) + 1; // buying twice will result in miss
+		var C1 = new Thread(() -> {
+			try {
+				// Buy books
+				Set<BookCopy> booksToBuy = new HashSet<>();
+				booksToBuy.add(new BookCopy(TEST_ISBN, numCopiesToBuy));
+				client.buyBooks(booksToBuy);
+			} catch (BookStoreException e) {
+				// One is expected to fail
+			}
+		});
+
+		var C2 = new Thread(() -> {
+			try {
+				// Buy books
+				Set<BookCopy> booksToBuy = new HashSet<>();
+				booksToBuy.add(new BookCopy(TEST_ISBN, numCopiesToBuy));
+				client.buyBooks(booksToBuy);
+			} catch (BookStoreException e) {
+				// One is expected to fail
+			}
+		});
+		// Start both threads
+		C1.start();
+		C2.start();
+
+		// Wait for both threads to finish
+		try {
+			C1.join();
+			C2.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		assertEquals(NUM_COPIES - numCopiesToBuy, storeManager.getBooks().get(0).getNumCopies());
+		assertTrue(storeManager.getBooks().get(0).getNumSaleMisses() > 0); // recordedd sales miss
+	}
 
 	//////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////
