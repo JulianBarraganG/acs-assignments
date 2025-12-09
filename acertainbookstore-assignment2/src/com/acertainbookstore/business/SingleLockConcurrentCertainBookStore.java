@@ -105,11 +105,11 @@ public class SingleLockConcurrentCertainBookStore implements BookStore, StockMan
 	 * com.acertainbookstore.interfaces.StockManager#addBooks(java.util.Set)
 	 */
 	public void addBooks(Set<StockBook> bookSet) throws BookStoreException {
+		if (bookSet == null) {
+			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
+		}
 		lock.writeLock().lock();
 		try {
-			if (bookSet == null) {
-				throw new BookStoreException(BookStoreConstants.NULL_INPUT);
-			}
 
 			// Check if all are there
 			for (StockBook book : bookSet) {
@@ -132,15 +132,15 @@ public class SingleLockConcurrentCertainBookStore implements BookStore, StockMan
 	 * com.acertainbookstore.interfaces.StockManager#addCopies(java.util.Set)
 	 */
 	public void addCopies(Set<BookCopy> bookCopiesSet) throws BookStoreException {
+		if (bookCopiesSet == null) {
+			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
+		}
 
 		lock.writeLock().lock();
 		try {
 		int isbn;
 		int numCopies;
 
-		if (bookCopiesSet == null) {
-			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
-		}
 
 		for (BookCopy bookCopy : bookCopiesSet) {
 			validate(bookCopy);
@@ -171,7 +171,9 @@ public class SingleLockConcurrentCertainBookStore implements BookStore, StockMan
 		return bookMapValues.stream()
                 .map(book -> book.immutableStockBook())
                 .collect(Collectors.toList());
-		} finally { lock.readLock().unlock(); }
+		} finally { 
+			lock.readLock().unlock(); 
+		}
 	}
 
 	/*
@@ -182,12 +184,12 @@ public class SingleLockConcurrentCertainBookStore implements BookStore, StockMan
 	 * .Set)
 	 */
 	public void updateEditorPicks(Set<BookEditorPick> editorPicks) throws BookStoreException {
-		lock.writeLock().lock();
-		try {
 		// Check that all ISBNs that we add/remove are there first.
 		if (editorPicks == null) {
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
 		}
+		lock.writeLock().lock();
+		try {
 
 		int isbnValue;
 
@@ -207,11 +209,11 @@ public class SingleLockConcurrentCertainBookStore implements BookStore, StockMan
 	 * @see com.acertainbookstore.interfaces.BookStore#buyBooks(java.util.Set)
 	 */
 	public void buyBooks(Set<BookCopy> bookCopiesToBuy) throws BookStoreException {
-		lock.writeLock().lock();
-		try {
 		if (bookCopiesToBuy == null) {
 			throw new BookStoreException(BookStoreConstants.NULL_INPUT);
 		}
+		lock.writeLock().lock();
+		try {
 
 		// Check that all ISBNs that we buy are there first.
 		int isbn;
