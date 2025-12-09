@@ -1,4 +1,5 @@
 *.class
+build.xml
 bin/
 *~
 
@@ -7,3 +8,4 @@ bin/
 *.ear
 /bin/
 .DS_Store
+.project

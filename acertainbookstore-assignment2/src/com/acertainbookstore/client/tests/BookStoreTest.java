@@ -363,6 +363,168 @@ public class BookStoreTest {
 				&& booksInStorePreTest.size() == booksInStorePostTest.size());
 	}
 
+	//////////////////////////////////////////////////////////////////////////////////
+	/////////////////////////////// ASSIGNMENT TESTS ////////////////////////////////
+	/**
+	 * Test one concurrent buyBooks()=1 functionality.
+	 * Test one concurrent addCopies()=5 functionality.
+	 * Test 1 in assignment
+	 *
+	 * @throws BookStoreException
+	 *             the book store exception
+	 */
+	@Test
+	public void testBuyOneAndAddManyBooksConcurrently() throws BookStoreException {
+		var threadBuyer = new Thread(() -> {
+			try {
+				// Buy one book
+				Set<BookCopy> booksToBuy = new HashSet<>();
+				booksToBuy.add(new BookCopy(TEST_ISBN, 1));
+				client.buyBooks(booksToBuy);
+			} catch (BookStoreException e) {
+                fail("C1 failed to buy books: " + e.getMessage());
+			}
+		});
+
+		var threadAdder = new Thread(() -> {
+			try {
+				// Add one book
+				Set<BookCopy> booksToAdd = new HashSet<>();
+				booksToAdd.add(new BookCopy(TEST_ISBN, 5));
+				storeManager.addCopies(booksToAdd);
+			} catch (BookStoreException e) {
+                fail("C2 failed to buy books: " + e.getMessage());
+			}
+
+		});
+		// Start both threads
+		threadBuyer.start();
+		threadAdder.start();
+
+		// Wait for both threads to finish
+		try {
+			threadBuyer.join();
+			threadAdder.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		assertEquals(NUM_COPIES + 4, storeManager.getBooks().get(0).getNumCopies());
+	}
+	/**
+	 * Test one concurrent buyBooks() functionality.
+	 * Test one concurrent addCopies() functionality.
+	 * Test 1 in assignment
+	 *
+	 * @throws BookStoreException
+	 *             the book store exception
+	 */
+	@Test
+	public void testBuyAndAddBooksConcurrently() throws BookStoreException {
+		var threadBuyer = new Thread(() -> {
+			try {
+				// Buy one book
+				Set<BookCopy> booksToBuy = new HashSet<>();
+				booksToBuy.add(new BookCopy(TEST_ISBN, 1));
+				client.buyBooks(booksToBuy);
+			} catch (BookStoreException e) {
+                fail("C1 failed to buy books: " + e.getMessage());
+			}
+		});
+
+		var threadAdder = new Thread(() -> {
+			try {
+				// Add one book
+				Set<BookCopy> booksToAdd = new HashSet<>();
+				booksToAdd.add(new BookCopy(TEST_ISBN, 1));
+				storeManager.addCopies(booksToAdd);
+			} catch (BookStoreException e) {
+                fail("C2 failed to buy books: " + e.getMessage());
+			}
+
+		});
+		// Start both threads
+		threadBuyer.start();
+		threadAdder.start();
+
+		// Wait for both threads to finish
+		try {
+			threadBuyer.join();
+			threadAdder.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+
+		assertEquals(NUM_COPIES, storeManager.getBooks().get(0).getNumCopies());
+	}
+	/**
+	 * Test 2 continuous buy/add is consistent
+	 */
+	@Test
+	public void testConsistency() throws BookStoreException {
+		int numIterations = 1000;
+		int numModify = 2;
+		Set<StockBook> stockBooksToAdd = new HashSet<>();
+		stockBooksToAdd.add(new ImmutableStockBook(
+			TEST_ISBN + 1, "The Art of Computer Programming", "Donald Knuth",
+			(float) 300, NUM_COPIES, 0, 0, 0, false)
+		);
+		stockBooksToAdd.add(new ImmutableStockBook(
+			TEST_ISBN + 2, "The C Programming Language",
+			"Dennis Ritchie and Brian Kerninghan", (float) 50, NUM_COPIES, 0, 0, 0, false)
+		);
+		// Add two more to the selection of books
+		storeManager.addBooks(stockBooksToAdd);
+
+		var C1 = new Thread(() -> {
+			try {
+				Set<BookCopy> booksToBuy = new HashSet<>();
+				Set<BookCopy> booksToAdd = new HashSet<>();
+				booksToBuy.add(new BookCopy(TEST_ISBN, numModify));
+				booksToBuy.add(new BookCopy(TEST_ISBN + 1, numModify));
+				booksToBuy.add(new BookCopy(TEST_ISBN + 2, numModify));
+				booksToAdd.add(new BookCopy(TEST_ISBN, numModify));		
+				booksToAdd.add(new BookCopy(TEST_ISBN + 1, numModify));		
+				booksToAdd.add(new BookCopy(TEST_ISBN + 2, numModify));		
+				for (int i = 0; i < numIterations; i++) {
+					// Continuously buy and add books
+					client.buyBooks(booksToBuy);
+					storeManager.addCopies(booksToAdd);
+				}
+			} catch (BookStoreException e) {
+                fail("C1 failed to buy and add books: " + e.getMessage());
+			}
+		});
+
+		var C2 = new Thread(() -> {
+			try {
+				for (int i = 0; i < numIterations; i++) {
+					List<StockBook> storeBooks = storeManager.getBooks();
+					for (StockBook book : storeBooks) {
+						assertTrue(book.getNumCopies() ==  NUM_COPIES || book.getNumCopies() == (NUM_COPIES - numModify));
+					}
+				}
+			} catch (BookStoreException e) {
+                fail("C2 failed to buy books: " + e.getMessage());
+			}
+
+		});
+		// Start both threads
+		C1.start();
+		C2.start();
+
+		// Wait for both threads to finish
+		try {
+			C1.join();
+			C2.join();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	//////////////////////////////////////////////////////////////////////////////////
+	//////////////////////////////////////////////////////////////////////////////////
+
 	/**
 	 * Tear down after class.
 	 *
