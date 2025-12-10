@@ -42,7 +42,7 @@ public class BookStoreTest {
 	private static boolean localTest = true;
 
 	/** Single lock test */
-	private static boolean singleLock = true;
+	private static boolean singleLock = false;
 
 	
 	/** The store manager. */
@@ -571,6 +571,87 @@ public class BookStoreTest {
 		assertEquals(NUM_COPIES - numCopiesToBuy, storeManager.getBooks().get(0).getNumCopies());
 		assertTrue(storeManager.getBooks().get(0).getNumSaleMisses() > 0); // recordedd sales miss
 	}
+
+
+	/**
+	 * Tests for deadlocks when multiple clients 
+	 * are trying to continuously buy and add copies.
+	 *
+	 */
+	@Test
+	public void testForDeadlocks() {
+		int numIterations = 10000;
+		int numBooks = 10;
+		int numClients = 20;
+
+		try
+		{
+			// Add books to the store
+			Set<StockBook> stockBooksToAdd = new HashSet<>();
+			for (int i = 1; i < numBooks; i++) {
+				stockBooksToAdd.add(new ImmutableStockBook(
+					TEST_ISBN + i, "Book " + i, "Author " + i,
+					(float) 20 + i, NUM_COPIES, 0, 0, 0, false)
+				);
+			}
+			storeManager.addBooks(stockBooksToAdd);
+		}
+		catch (Exception e) {
+			fail("Could not add books for deadlock test: " + e.getMessage());
+		}
+
+		// Function that continuously buys and adds books
+		Runnable deadLockFunction = () -> {
+			try {
+				for (int i = 0; i < numIterations; i++) {
+					// Randomly select a book to buy/add
+					Set<BookCopy> booksToBuy = new HashSet<>();
+					var bookToBuy = TEST_ISBN + (int)(Math.random() * numBooks);
+                    try {
+                        booksToBuy.add(new BookCopy(bookToBuy, 1));
+                        client.buyBooks(booksToBuy);
+
+                        Set<Integer> isbn = new HashSet<>();
+                        isbn.add(bookToBuy);
+                        var book = storeManager.getBooksByISBN(isbn).get(0);
+                        if (book.getNumCopies() > numClients * 10) fail("Too many books");
+                    }
+					catch (BookStoreException e) {
+						// Fails if no copies available so we just add more copies
+						Set<BookCopy> booksToAdd = new HashSet<>();
+						booksToAdd.add(new BookCopy(bookToBuy, 5));
+						storeManager.addCopies(booksToAdd);
+					}
+				}
+			} catch (BookStoreException e) {
+				fail("Thread failed: " + e.getMessage());
+			}
+		};
+
+		// Initialize threads
+		var threadList = new Thread[numClients];
+		for (int i = 0; i < numClients; i++) {
+			threadList[i] = new Thread(deadLockFunction);
+		}
+		
+		// Start threads
+		for (int i = 0; i < numClients; i++) {
+			threadList[i].start();
+		}
+
+		try {
+			for (int i = 0; i < numClients; i++) {
+				threadList[i].join(2000);
+				if (threadList[i].isAlive()) { // Deadlock detected
+					fail("Deadlock detected: thread " + i + " is still alive after timeout");
+				}
+			}
+		} catch (InterruptedException e) {
+            fail("");
+            e.printStackTrace();
+		}
+    }
+
 
 	//////////////////////////////////////////////////////////////////////////////////
 	//////////////////////////////////////////////////////////////////////////////////
