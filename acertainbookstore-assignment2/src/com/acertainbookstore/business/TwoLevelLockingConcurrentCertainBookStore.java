@@ -245,6 +245,7 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 			Boolean saleMiss = false;
 
 			Map<Integer, Integer> salesMisses = new HashMap<>();
+            List<Integer> LockedBookISBNs = new ArrayList<Integer>();
 
 			try {
 				for (BookCopy bookCopyToBuy : bookCopiesToBuy) {
@@ -254,7 +255,7 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 					validate(bookCopyToBuy);
 					var bookLock = lockMap.get(isbn);
 					bookLock.writeLock().lock();
-
+                    LockedBookISBNs.add(isbn);
 					book = bookMap.get(isbn);
 
 					if (!book.areCopiesInStore(bookCopyToBuy.getNumCopies())) {
@@ -281,8 +282,11 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 				}
 			} finally {
 				// Release all locks
-				for (var bookCopy : bookCopiesToBuy) {
-					var bookLock = lockMap.get(bookCopy.getISBN());
+				for (var lockedISBN : LockedBookISBNs) {
+					var bookLock = lockMap.get(lockedISBN);
+                    if (bookLock == null) {
+                        System.out.println(bookCopiesToBuy);
+                    }
 					bookLock.writeLock().unlock();
 				}
 			}
@@ -333,12 +337,15 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 		}
 		globalLock.readLock().lock();
 		try {
+            List<Integer> LockedBookISBNs = new ArrayList<Integer>();
+
 			// Lock all books first, then validate
 			try {
 				for (int isbn : isbnSet) {
 					validateISBNInStock(isbn); // val before lock
 					var bookLock = lockMap.get(isbn);
 					bookLock.readLock().lock();
+                    LockedBookISBNs.add(isbn);
 				}
 				
 				return isbnSet.stream()
@@ -346,7 +353,7 @@ public class TwoLevelLockingConcurrentCertainBookStore implements BookStore, Sto
 						.collect(Collectors.toList());
 			} finally {
 				// Release all locks
-				for (int isbn : isbnSet) {
+				for (int isbn : LockedBookISBNs) {
 					var bookLock = lockMap.get(isbn);
 					bookLock.readLock().unlock();
 				}
