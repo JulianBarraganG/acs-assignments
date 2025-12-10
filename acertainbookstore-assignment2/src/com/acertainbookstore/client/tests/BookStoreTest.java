@@ -607,8 +607,8 @@ public class BookStoreTest {
 					// Randomly select a book to buy/add
 					Set<BookCopy> booksToBuy = new HashSet<>();
 					var bookToBuy = TEST_ISBN + (int)(Math.random() * numBooks);
+					booksToBuy.add(new BookCopy(bookToBuy, 1));
                     try {
-                        booksToBuy.add(new BookCopy(bookToBuy, 1));
                         client.buyBooks(booksToBuy);
 
                         Set<Integer> isbn = new HashSet<>();
@@ -621,6 +621,101 @@ public class BookStoreTest {
 						Set<BookCopy> booksToAdd = new HashSet<>();
 						booksToAdd.add(new BookCopy(bookToBuy, 5));
 						storeManager.addCopies(booksToAdd);
+					}
+				}
+			} catch (BookStoreException e) {
+				fail("Thread failed: " + e.getMessage());
+			}
+		};
+
+		// Initialize threads
+		var threadList = new Thread[numClients];
+		for (int i = 0; i < numClients; i++) {
+			threadList[i] = new Thread(deadLockFunction);
+		}
+		
+		// Start threads
+		for (int i = 0; i < numClients; i++) {
+			threadList[i].start();
+		}
+
+		try {
+			for (int i = 0; i < numClients; i++) {
+				threadList[i].join(2000);
+				if (threadList[i].isAlive()) { // Deadlock detected
+					fail("Deadlock detected: thread " + i + " is still alive after timeout");
+				}
+			}
+		} catch (InterruptedException e) {
+            fail("");
+            e.printStackTrace();
+		}
+    }
+
+
+		/**
+	 * Tests for deadlocks when multiple clients 
+	 * are trying to continuously buy and add multiple copies.
+	 *
+	 */
+	@Test
+	public void testForDeadlocks2() {
+		int numIterations = 10000;
+		int numBooks = 10;
+		int numClients = 20;
+		int booksPerTransaction = 3;
+
+		try
+		{
+			// Add books to the store
+			Set<StockBook> stockBooksToAdd = new HashSet<>();
+			for (int i = 1; i < numBooks; i++) {
+				stockBooksToAdd.add(new ImmutableStockBook(
+					TEST_ISBN + i, "Book " + i, "Author " + i,
+					(float) 20 + i, NUM_COPIES, 0, 0, 0, false)
+				);
+			}
+			storeManager.addBooks(stockBooksToAdd);
+		}
+		catch (Exception e) {
+			fail("Could not add books for deadlock test: " + e.getMessage());
+		}
+
+		// Function that continuously buys and adds books
+		Runnable deadLockFunction = () -> {
+			try {
+				for (int i = 0; i < numIterations; i++) {
+					// Randomly select a book to buy/add
+					Set<BookCopy> booksToBuy = new HashSet<>();
+					for (int j = 0; j < booksPerTransaction; j++) {
+						int bookToBuy = TEST_ISBN + (int)(Math.random() * numBooks);
+						booksToBuy.add(new BookCopy(bookToBuy, 1));
+					}
+                    try {
+                        client.buyBooks(booksToBuy);
+                    }
+					catch (BookStoreException e) {
+						// Fails if no copies available so we just add more copies
+						
+						for (BookCopy bookCopy : booksToBuy) {
+							int bookToBuy = bookCopy.getISBN();
+
+							if (bookCopy.getNumCopies() >= 1) continue; // only add if none available
+
+							Set<Integer> isbn = new HashSet<>();
+							isbn.add(bookToBuy);
+							var book = storeManager.getBooksByISBN(isbn).get(0);
+							if (book.getNumCopies() > numClients * 10) fail("Too many books");
+
+							Set<BookCopy> booksToAdd = new HashSet<>();
+							booksToAdd.add(new BookCopy(bookToBuy, 5));
+                            try {
+                                storeManager.addCopies(booksToAdd);
+                            }
+                            catch (BookStoreException er) {
+                                fail(er.getMessage());
+                            }
+                        }
 					}
 				}
 			} catch (BookStoreException e) {
