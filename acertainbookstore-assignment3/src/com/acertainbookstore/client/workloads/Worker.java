@@ -56,6 +56,7 @@ public class Worker implements Callable<WorkerRunResult> {
 		numSuccessfulFrequentBookStoreInteraction++;
 	    }
 	} catch (BookStoreException ex) {
+        System.out.println("Failed interaction: " + ex);
 	    return false;
 	}
 	return true;

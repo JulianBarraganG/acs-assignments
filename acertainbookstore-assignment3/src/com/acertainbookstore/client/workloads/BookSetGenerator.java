@@ -43,7 +43,7 @@ public class BookSetGenerator {
 		if (num == 0) {
 			return sampledBookISBNS;
 		}
-		if (ISBNSize < num) {
+        if (ISBNSize < num) {
 			throw new BookStoreException(
 				"The number of sampled books `num` must be smaller than or equal to input size of `isbns`."
 			);
@@ -53,7 +53,7 @@ public class BookSetGenerator {
 		// random.nextInt samples from [0, bound) uniformly
 		for (int i = 0; i < num; i++) {
 			ISBNSize = isbnsList.size();
-			int randomIndex = random.nextInt(ISBNSize);
+            int randomIndex = random.nextInt(ISBNSize);
 			Integer sampleISBN = isbnsList.get(randomIndex);
 			sampledBookISBNS.add(sampleISBN);
 			isbnsList.remove(randomIndex);
@@ -87,7 +87,7 @@ public class BookSetGenerator {
 			int numSaleMisses = 0;
 			int numTimesRated = 0;
 			int totalRating = 0;
-			boolean editorPick = numCopies % 2 == 4; // 4 should probably be a pram. 1/4 are editor picks
+			boolean editorPick = numCopies % 4 == 0; // 4 should probably be a pram. 1/4 are editor picks
 			
 			StockBook stockBook = new ImmutableStockBook(
 				isbn,
@@ -105,7 +105,8 @@ public class BookSetGenerator {
 
 		if (stockBooks.size() < num) {
 			// Duplicates were generated, try again to get enough unique stock books
-			return nextSetOfStockBooks(num);
+			System.out.println("Rerolling books");
+            return nextSetOfStockBooks(num);
 		}
 
 		return stockBooks;

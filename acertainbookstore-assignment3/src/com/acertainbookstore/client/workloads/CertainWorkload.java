@@ -96,16 +96,24 @@ public class CertainWorkload {
 	 */
 	public static void reportMetric(List<WorkerRunResult> workerRunResults) {
 
-		int aggregateThroughput = 0;
-		int latency = 0;
+        double aggregateThroughput = 0;
+        double latency = 0;
+        long notSucRuns = 0;
+        long numTotalRuns = 0;
+
 		for (var run : workerRunResults) {
-			aggregateThroughput += run.getSuccessfulInteractions() / run.getElapsedTimeInNanoSecs();
-			latency += run.getElapsedTimeInNanoSecs() / run.getSuccessfulInteractions();
+			aggregateThroughput += (run.getSuccessfulInteractions()) / (((double)run.getElapsedTimeInNanoSecs()));
+			latency += (((double)run.getElapsedTimeInNanoSecs()) ) / (run.getSuccessfulInteractions());
+            notSucRuns += run.getTotalRuns() - run.getSuccessfulInteractions();
+            numTotalRuns += run.getTotalRuns();
 		}
 		latency /= workerRunResults.size();
 
-		System.out.println(aggregateThroughput);
-		System.out.println(latency);
+        System.out.println("Number of workers: " + workerRunResults.size());
+		System.out.println("Aggregate Throughput: " + aggregateThroughput);
+		System.out.println("Average Latency: " + latency + " ns");
+        System.out.println("Total runs: " + numTotalRuns);
+        System.out.println("Failed runs: " + notSucRuns);
 
 	}
 
