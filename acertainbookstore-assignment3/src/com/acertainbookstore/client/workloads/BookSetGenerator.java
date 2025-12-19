@@ -24,6 +24,7 @@ public class BookSetGenerator {
 	/**
 	 * Returns num randomly selected isbns from the input set
 	 * 
+	 * @param isbns
 	 * @param num
 	 * @return
 	 */

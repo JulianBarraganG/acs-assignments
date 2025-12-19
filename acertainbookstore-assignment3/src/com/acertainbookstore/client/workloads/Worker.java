@@ -11,6 +11,7 @@ import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import com.acertainbookstore.utils.BookStoreException;
+import com.acertainbookstore.business.Book;
 import com.acertainbookstore.business.BookCopy;
 import com.acertainbookstore.business.StockBook;
 
@@ -156,7 +157,30 @@ public class Worker implements Callable<WorkerRunResult> {
      * @throws BookStoreException
      */
     private void runFrequentBookStoreInteraction() throws BookStoreException {
-	// TODO: Add code for Customer Interaction
-    }
+		// initialize 
+		var bookStore = configuration.getBookStore();
+		var bookSetGenerator = configuration.getBookSetGenerator();
+		int numEditorPicks = configuration.getNumEditorPicksToGet();
+		int numBooksToBuy = configuration.getNumBooksToBuy();
+		int copiesPerBook = configuration.getNumBookCopiesToBuy();
+		
+		// Get editor picks 
+		List<Book> editorPicks = bookStore.getEditorPicks(numEditorPicks);
 
+		// For every book in editorPicks add its ISBN to setOfISBNs
+		Set<Integer> setOfISBNs = new HashSet<>();
+		for (Book book : editorPicks) {
+			setOfISBNs.add(book.getISBN());
+		}
+
+		// Sample a subset of these
+		Set<Integer> samples = bookSetGenerator.sampleFromSetOfISBNs(setOfISBNs, numBooksToBuy);
+
+		// buy these with client buy books
+		Set<BookCopy> booksToBuySet = new HashSet<>();
+		for (Integer isbn : samples) {
+			booksToBuySet.add(new BookCopy(isbn, copiesPerBook));
+		}
+		bookStore.buyBooks(booksToBuySet);
+    }
 }
