@@ -30,8 +30,6 @@ import com.acertainbookstore.business.ImmutableStockBook;
  */
 public class CertainWorkload {
 
-	private 
-
 	/**
 	 * @param args
 	 */

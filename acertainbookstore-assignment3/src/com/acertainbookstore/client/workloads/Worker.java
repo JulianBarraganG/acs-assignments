@@ -5,11 +5,13 @@ package com.acertainbookstore.client.workloads;
 
 import java.util.Random;
 import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import com.acertainbookstore.utils.BookStoreException;
+import com.acertainbookstore.business.BookCopy;
 import com.acertainbookstore.business.StockBook;
 
 /**
@@ -127,7 +129,25 @@ public class Worker implements Callable<WorkerRunResult> {
      * @throws BookStoreException
      */
     private void runFrequentStockManagerInteraction() throws BookStoreException {
-	// TODO: Add code for Stock Replenishment Interaction
+		// Initialize all class instances and variablse
+		var stockManager = configuration.getStockManager();
+		List<StockBook> existingBooks = stockManager.getBooks();
+		int k = configuration.getNumBooksWithLeastCopies();
+
+		// Sort in ascending order by num book copies
+		// For each of the first k of these books, add copies
+		Set<StockBook> booksToReplenish = existingBooks.stream()
+				.sorted((b1, b2) -> Integer.compare(b1.getNumCopies(), b2.getNumCopies()))
+				.limit(k)
+				.collect(Collectors.toSet());
+
+		// Create BookCopy objects and add them to stock manager
+		Set<BookCopy> bookCopiesToAdd = new HashSet<>();
+		for (StockBook book : booksToReplenish) {
+			var bookCopy = new BookCopy(book.getISBN(), configuration.getNumBooksToAdd());
+			bookCopiesToAdd.add(bookCopy);
+		}
+		stockManager.addCopies(bookCopiesToAdd);
     }
 
     /**
