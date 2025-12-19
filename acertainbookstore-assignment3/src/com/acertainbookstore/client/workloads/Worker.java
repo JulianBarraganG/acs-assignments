@@ -105,13 +105,15 @@ public class Worker implements Callable<WorkerRunResult> {
      * @throws BookStoreException
      */
     private void runRareStockManagerInteraction() throws BookStoreException {
-		// Get existing books
+		// Initialize variables and class instances
 		var stockManager = configuration.getStockManager();
+		var bookSetGenerator = configuration.getBookSetGenerator();
+		int numBooksToAdd = configuration.getNumBooksToAdd();
+
+		// Get existing books
 		List<StockBook> existingBooks = stockManager.getBooks();
 
 		// Get a set of new books
-		var bookSetGenerator = configuration.getBookSetGenerator();
-		int numBooksToAdd = configuration.getNumBooksToAdd();
 		Set<StockBook> newBooks = bookSetGenerator.nextSetOfStockBooks(numBooksToAdd);
 
 		// Filter out any collisions
@@ -157,7 +159,7 @@ public class Worker implements Callable<WorkerRunResult> {
      * @throws BookStoreException
      */
     private void runFrequentBookStoreInteraction() throws BookStoreException {
-		// initialize 
+		// Initialize variables and class instances
 		var bookStore = configuration.getBookStore();
 		var bookSetGenerator = configuration.getBookSetGenerator();
 		int numEditorPicks = configuration.getNumEditorPicksToGet();

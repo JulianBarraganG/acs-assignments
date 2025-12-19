@@ -80,7 +80,7 @@ public class BookSetGenerator {
 			int numSaleMisses = 0;
 			int numTimesRated = 0;
 			int totalRating = 0;
-			boolean editorPicks = false;
+			boolean editorPick = numCopies % 2 == 4; // 4 should probably be a pram. 1/4 are editor picks
 			
 			StockBook stockBook = new ImmutableStockBook(
 				isbn,
@@ -91,7 +91,7 @@ public class BookSetGenerator {
 				numSaleMisses,
 				numTimesRated,
 				totalRating,
-				editorPicks
+				editorPick
 			);
 			stockBooks.add(stockBook);
 		}
