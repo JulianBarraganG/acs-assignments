@@ -35,18 +35,25 @@ public class BookSetGenerator {
 
 		// Initiate return set, get size and validate input
 		Set<Integer> sampledBookISBNS = new HashSet<>();
-		int inputSize = isbns.size();
-		if (inputSize > num) {
+		int ISBNSize = isbns.size();
+
+		if (num < 0) {
+        throw new BookStoreException("The number of sampled books `num` must be non-negative.");
+		}
+		if (num == 0) {
+			return sampledBookISBNS;
+		}
+		if (ISBNSize < num) {
 			throw new BookStoreException(
-				"The number of sampled books `num` must be smaller than input size of `isbns`."
+				"The number of sampled books `num` must be smaller than or equal to input size of `isbns`."
 			);
 		}
 
 		// Iteratively sample random isbns from the list
 		// random.nextInt samples from [0, bound) uniformly
 		for (int i = 0; i < num; i++) {
-			inputSize = isbnsList.size();
-			int randomIndex = random.nextInt(inputSize);
+			ISBNSize = isbnsList.size();
+			int randomIndex = random.nextInt(ISBNSize);
 			Integer sampleISBN = isbnsList.get(randomIndex);
 			sampledBookISBNS.add(sampleISBN);
 			isbnsList.remove(randomIndex);
