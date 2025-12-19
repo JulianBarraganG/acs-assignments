@@ -10,6 +10,7 @@ import com.acertainbookstore.interfaces.StockManager;
  * 
  */
 public class WorkloadConfiguration {
+	private int numInitialBooks = 100;
 	private int numBooksToBuy = 5;
 	private int numBookCopiesToBuy = 1;
 	private int numEditorPicksToGet = 10;
@@ -29,6 +30,10 @@ public class WorkloadConfiguration {
 		bookSetGenerator = new BookSetGenerator();
 		this.bookStore = bookStore;
 		this.stockManager = stockManager;
+	}
+
+	public int getNumInitialBooks() {
+		return numInitialBooks;
 	}
 
 	public int getNumBooksToBuy() {

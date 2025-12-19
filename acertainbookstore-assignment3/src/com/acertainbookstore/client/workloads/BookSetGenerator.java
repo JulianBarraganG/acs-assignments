@@ -63,6 +63,9 @@ public class BookSetGenerator {
 	public Set<StockBook> nextSetOfStockBooks(int num) throws BookStoreException {
 		Set<StockBook> stockBooks = new HashSet<>();
 
+		if (num >= Integer.MAX_VALUE / 8) { // Arbitrary large number check
+			throw new BookStoreException("The number of books `num` is too large.");
+		}
 		if (num < 0) {
 			throw new BookStoreException("The number of books `num` must be non-negative.");
 		}
@@ -78,8 +81,23 @@ public class BookSetGenerator {
 			int totalRating = 0;
 			boolean editorPicks = false;
 			
-			StockBook stockBook = new ImmutableStockBook(isbn, title, author, price, numCopies, numSaleMisses, numTimesRated, totalRating, editorPicks);
+			StockBook stockBook = new ImmutableStockBook(
+				isbn,
+				title,
+				author,
+				price,
+				numCopies,
+				numSaleMisses,
+				numTimesRated,
+				totalRating,
+				editorPicks
+			);
 			stockBooks.add(stockBook);
+		}
+
+		if (stockBooks.size() < num) {
+			// Duplicates were generated, try again to get enough unique stock books
+			return nextSetOfStockBooks(num);
 		}
 
 		return stockBooks;
