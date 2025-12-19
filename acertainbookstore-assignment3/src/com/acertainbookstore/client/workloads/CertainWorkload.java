@@ -95,7 +95,18 @@ public class CertainWorkload {
 	 * @param workerRunResults
 	 */
 	public static void reportMetric(List<WorkerRunResult> workerRunResults) {
-		// TODO: You should aggregate metrics and output them for plotting here
+
+		int aggregateThroughput = 0;
+		int latency = 0;
+		for (var run : workerRunResults) {
+			aggregateThroughput += run.getSuccessfulInteractions() / run.getElapsedTimeInNanoSecs();
+			latency += run.getElapsedTimeInNanoSecs() / run.getSuccessfulInteractions();
+		}
+		latency /= workerRunResults.size();
+
+		System.out.println(aggregateThroughput);
+		System.out.println(latency);
+
 	}
 
 	/**
