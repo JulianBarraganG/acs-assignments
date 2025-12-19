@@ -1,8 +1,12 @@
 package com.acertainbookstore.client.workloads;
 
 import java.util.Set;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Random;
 
 import com.acertainbookstore.business.StockBook;
+import com.acertainbookstore.utils.BookStoreException;
 
 /**
  * Helper class to generate stockbooks and isbns modelled similar to Random
@@ -10,8 +14,10 @@ import com.acertainbookstore.business.StockBook;
  */
 public class BookSetGenerator {
 
+	private Random random;
+
 	public BookSetGenerator() {
-		// TODO Auto-generated constructor stub
+		random = new Random();
 	}
 
 	/**
@@ -20,8 +26,31 @@ public class BookSetGenerator {
 	 * @param num
 	 * @return
 	 */
-	public Set<Integer> sampleFromSetOfISBNs(Set<Integer> isbns, int num) {
-		return null;
+	public Set<Integer> sampleFromSetOfISBNs(Set<Integer> isbns, int num) throws BookStoreException {
+		// Convert set to list for random access
+		ArrayList<Integer> isbnsList = new ArrayList<>();
+		isbnsList.addAll(isbns);
+
+		// Initiate return set, get size and validate input
+		Set<Integer> sampledBookISBNS = new HashSet<>();
+		int inputSize = isbns.size();
+		if (inputSize > num) {
+			throw new BookStoreException(
+				"The number of sampled books `num` must be smaller than input size of `isbns`."
+			);
+		}
+
+		// Iteratively sample random isbns from the list
+		// random.nextInt samples from [0, bound) uniformly
+		for (int i = 0; i < num; i++) {
+			inputSize = isbnsList.size();
+			int randomIndex = random.nextInt(inputSize);
+			Integer sampleISBN = isbnsList.get(randomIndex);
+			sampledBookISBNS.add(sampleISBN);
+			isbnsList.remove(randomIndex);
+		}
+		
+		return sampledBookISBNS;
 	}
 
 	/**
