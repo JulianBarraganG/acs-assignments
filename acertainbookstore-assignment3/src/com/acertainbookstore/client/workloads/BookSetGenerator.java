@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Random;
 
+import com.acertainbookstore.business.ImmutableStockBook;
 import com.acertainbookstore.business.StockBook;
 import com.acertainbookstore.utils.BookStoreException;
 
@@ -59,8 +60,29 @@ public class BookSetGenerator {
 	 * @param num
 	 * @return
 	 */
-	public Set<StockBook> nextSetOfStockBooks(int num) {
-		return null;
+	public Set<StockBook> nextSetOfStockBooks(int num) throws BookStoreException {
+		Set<StockBook> stockBooks = new HashSet<>();
+
+		if (num < 0) {
+			throw new BookStoreException("The number of books `num` must be non-negative.");
+		}
+
+		for (int i = 0; i < num; i++) {
+			int isbn = random.nextInt(Integer.MAX_VALUE - 1) + 1; // ISBNs are positive integers
+			String title = "Title_" + Integer.toString(isbn, 36); // Convert isbn to base 36 for more compact representation
+			String author = "Author_" + Integer.toString(isbn, 36);
+			float price = random.nextFloat() * 1000; // Price between 0 and 1000
+			int numCopies = random.nextInt(100) + 1; // At least 1 copy, at most 100 copies
+			int numSaleMisses = 0;
+			int numTimesRated = 0;
+			int totalRating = 0;
+			boolean editorPicks = false;
+			
+			StockBook stockBook = new ImmutableStockBook(isbn, title, author, price, numCopies, numSaleMisses, numTimesRated, totalRating, editorPicks);
+			stockBooks.add(stockBook);
+		}
+
+		return stockBooks;
 	}
 
 }
