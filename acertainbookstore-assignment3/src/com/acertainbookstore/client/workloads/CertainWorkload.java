@@ -34,9 +34,9 @@ public class CertainWorkload {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		int numConcurrentWorkloadThreads = 10;
+		int numConcurrentWorkloadThreads = 60;
 		String serverAddress = "http://localhost:8081";
-		boolean localTest = true;
+		boolean localTest = false;
 		List<WorkerRunResult> workerRunResults = new ArrayList<WorkerRunResult>();
 		List<Future<WorkerRunResult>> runResults = new ArrayList<Future<WorkerRunResult>>();
 
@@ -100,20 +100,41 @@ public class CertainWorkload {
         double latency = 0;
         long notSucRuns = 0;
         long numTotalRuns = 0;
+        long totalElapsedTime = 0;
+        long totalSuccessfulInteractions = 0;
+		long totalFrequentBookStoreInteractionRuns = 0;
 
-		for (var run : workerRunResults) {
-			aggregateThroughput += (run.getSuccessfulInteractions()) / (((double)run.getElapsedTimeInNanoSecs()));
-			latency += (((double)run.getElapsedTimeInNanoSecs()) ) / (run.getSuccessfulInteractions());
+        for (WorkerRunResult run : workerRunResults) {
+            // Aggregate throughput is the sum of throughput of each worker
+            // Throughput = successful interactions / time
+            aggregateThroughput += (double) run.getSuccessfulInteractions() / run.getElapsedTimeInNanoSecs();
+            
+            // For average latency, we need total time and total successful interactions
+            totalElapsedTime += run.getElapsedTimeInNanoSecs();
+            totalSuccessfulInteractions += run.getSuccessfulInteractions();
+            
             notSucRuns += run.getTotalRuns() - run.getSuccessfulInteractions();
             numTotalRuns += run.getTotalRuns();
-		}
-		latency /= workerRunResults.size();
+
+			totalFrequentBookStoreInteractionRuns += run.getTotalFrequentBookStoreInteractionRuns();
+        }
+
+        // Average latency of interactions across workers = Total Time / Total Successful Interactions
+        if (totalSuccessfulInteractions > 0) {
+            latency = (double) totalElapsedTime / totalSuccessfulInteractions;
+        }
 
         System.out.println("Number of workers: " + workerRunResults.size());
-		System.out.println("Aggregate Throughput: " + aggregateThroughput);
-		System.out.println("Average Latency: " + latency + " ns");
+        System.out.println("Aggregate Throughput: " + String.format("%.2f", aggregateThroughput * 1_000_000_000) + " runs/s");
+        System.out.println("Average Latency: " + String.format("%.2f", latency / 1_000_000) + " ms");
         System.out.println("Total runs: " + numTotalRuns);
         System.out.println("Failed runs: " + notSucRuns);
+
+		double failureRate = (double) notSucRuns / numTotalRuns * 100;
+        System.out.println("Failure rate: " + String.format("%.2f", failureRate) + "%");
+
+		double customerRatio = (double) totalFrequentBookStoreInteractionRuns / numTotalRuns * 100;
+        System.out.println("Frequent BookStore Interaction Ratio: " + String.format("%.2f", customerRatio) + "%");
 
 	}
 
