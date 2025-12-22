@@ -4,9 +4,7 @@
 package com.acertainbookstore.client.workloads;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -18,7 +16,6 @@ import com.acertainbookstore.interfaces.BookStore;
 import com.acertainbookstore.interfaces.StockManager;
 import com.acertainbookstore.utils.BookStoreConstants;
 import com.acertainbookstore.utils.BookStoreException;
-import com.acertainbookstore.business.ImmutableStockBook;
 
 
 /**
@@ -37,8 +34,8 @@ public class CertainWorkload {
 		int numConcurrentWorkloadThreads = 60;
 		String serverAddress = "http://localhost:8081";
 		boolean localTest = false;
-		List<WorkerRunResult> workerRunResults = new ArrayList<WorkerRunResult>();
-		List<Future<WorkerRunResult>> runResults = new ArrayList<Future<WorkerRunResult>>();
+		List<WorkerRunResult> workerRunResults = new ArrayList<>();
+		List<Future<WorkerRunResult>> runResults = new ArrayList<>();
 
 		// Initialize the RPC interfaces if its not a localTest, the variable is
 		// overriden if the property is set
